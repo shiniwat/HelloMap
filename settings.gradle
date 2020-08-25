@@ -1,0 +1,3 @@
+include ':app', ':sdl_android'
+rootProject.name = "HelloMap"
+project (':sdl_android').projectDir = new File('./sdl_java_suite/android/sdl_android')

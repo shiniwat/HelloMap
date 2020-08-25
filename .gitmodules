@@ -1,0 +1,3 @@
+[submodule "sdl_java_suite"]
+	path = sdl_java_suite
+	url = https://github.com/shiniwat/sdl_android-1.git
