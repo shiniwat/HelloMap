@@ -19,14 +19,12 @@ import com.smartdevicelink.proxy.rpc.OnHMIStatus
 import com.smartdevicelink.proxy.rpc.SetDisplayLayout
 import com.smartdevicelink.proxy.rpc.enums.*
 import com.smartdevicelink.proxy.rpc.listeners.OnRPCNotificationListener
+import com.smartdevicelink.streaming.video.VideoStreamingParameters
 import com.smartdevicelink.transport.BaseTransportConfig
 import com.smartdevicelink.transport.MultiplexTransportConfig
 import com.smartdevicelink.transport.TCPTransportConfig
 import com.smartdevicelink.transport.enums.TransportType
-import net.shiniwa.hellomap.ConfigActivity
-import net.shiniwa.hellomap.MapPresentation
-import net.shiniwa.hellomap.MyApplication
-import net.shiniwa.hellomap.R
+import net.shiniwa.hellomap.*
 import java.util.*
 
 class SdlService : Service() {
@@ -157,13 +155,13 @@ class SdlService : Service() {
                             }
                             when(notification?.hmiLevel) {
                                 HMILevel.HMI_NONE -> MyApplication.setConnectionState(
-                                    ProxyStateManager.ProxyConnectionState.READY_NONE
+                                    ProxyStateManager.ProxyConnectionState.HMI_NONE
                                 )
                                 HMILevel.HMI_LIMITED -> MyApplication.setConnectionState(
-                                    ProxyStateManager.ProxyConnectionState.READY_LIMITED
+                                    ProxyStateManager.ProxyConnectionState.HMI_LIMITED
                                 )
                                 HMILevel.HMI_FULL -> {
-                                    MyApplication.setConnectionState(ProxyStateManager.ProxyConnectionState.READY_FULL)
+                                    MyApplication.setConnectionState(ProxyStateManager.ProxyConnectionState.HMI_FULL)
                                     if (hmiCapabilities?.isVideoStreamingAvailable() == true) {
                                         Log.d(TAG, "videoStreaming is available")
                                         startVPM(applicationContext)
@@ -199,7 +197,7 @@ class SdlService : Service() {
 
             override fun onDestroy() {
                 Log.d(TAG, "SdlManagerListener.onDestroy")
-                Throwable().printStackTrace()
+                MyApplication.setConnectionState(ProxyStateManager.ProxyConnectionState.NONE)
                 hmiCapabilities = null
             }
 
@@ -236,13 +234,13 @@ class SdlService : Service() {
     }
 
     fun getTransportConfig(): BaseTransportConfig {
-        val pref = getSharedPreferences(ConfigActivity.prefName, Context.MODE_PRIVATE)
-        val mode = pref.getBoolean(ConfigActivity.transportKey, true)
+        val pref = getSharedPreferences(TransportConfigActivity.prefName, Context.MODE_PRIVATE)
+        val mode = pref.getBoolean(TransportConfigActivity.transportKey, true)
         if (mode) {
             return MultiplexTransportConfig(this, APP_ID, MultiplexTransportConfig.FLAG_MULTI_SECURITY_HIGH)
         } else {
-            val ipAddr = pref.getString(ConfigActivity.addrKey, "127.0.0.1")
-            val port = pref.getInt(ConfigActivity.portKey, 15324)
+            val ipAddr = pref.getString(TransportConfigActivity.addrKey, "127.0.0.1")
+            val port = pref.getInt(TransportConfigActivity.portKey, 12345)
             return TCPTransportConfig(port, ipAddr, false)
         }
     }
@@ -268,7 +266,15 @@ class SdlService : Service() {
         if (sdlManager?.videoStreamManager == null) {
             Log.e(TAG, "videoStreamManager is null")
         } else {
-            sdlManager?.videoStreamManager?.startRemoteDisplayStream(context, MapPresentation::class.java, null, false)
+            val pref = getSharedPreferences(VdeConfigActivity.prefName, Context.MODE_PRIVATE)
+            var parameter: VideoStreamingParameters? = null
+            if (pref.getBoolean(VdeConfigActivity.useStableFrameRateKey, true)) {
+                // parameter is set only if stable frame rate is enabled.
+                parameter = VideoStreamingParameters()
+                parameter.isStableFrameRate = pref.getBoolean(VdeConfigActivity.useStableFrameRateKey, true)
+                parameter.frameRate = pref.getInt(VdeConfigActivity.frameRateKey, 30)
+            }
+            sdlManager?.videoStreamManager?.startRemoteDisplayStream(context, MapPresentation::class.java, parameter, false)
         }
     }
 

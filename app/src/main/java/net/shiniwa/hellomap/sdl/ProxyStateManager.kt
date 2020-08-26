@@ -4,10 +4,10 @@ class ProxyStateManager(listener: OnChangeStateListener) {
     enum class ProxyConnectionState {
         NONE,
         PROXY_OPENING,
-        READY_NONE,
-        READY_LIMITED,
-        READY_BACKGROUND,
-        READY_FULL,
+        HMI_NONE,
+        HMI_LIMITED,
+        HMI_BACKGROUND,
+        HMI_FULL,
         DISPOSING
     }
 

@@ -114,8 +114,9 @@ class MainListActivity: AppCompatActivity() {
         if (item.itemId == R.id.action_restart) {
             ServiceBridge.sendBroadcast(this, Intent().setAction(ServiceBridge.SupportedActions.ACTION_RESTART.name))
         } else if (item.itemId == R.id.action_config) {
-            val intent = Intent(this, ConfigActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, TransportConfigActivity::class.java))
+        } else if (item.itemId == R.id.action_vde_config) {
+            startActivity(Intent(this, VdeConfigActivity::class.java))
         }
         return super.onOptionsItemSelected(item)
     }

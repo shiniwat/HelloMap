@@ -9,8 +9,8 @@ import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatActivity
 import net.shiniwa.hellomap.logging.Log
 
-class ConfigActivity : AppCompatActivity() {
-    private val TAG = ConfigActivity::class.java.simpleName
+class TransportConfigActivity : AppCompatActivity() {
+    private val TAG = TransportConfigActivity::class.java.simpleName
 
     companion object {
         val prefName = "TransportConfig"

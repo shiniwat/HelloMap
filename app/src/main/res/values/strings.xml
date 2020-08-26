@@ -3,4 +3,5 @@
     <string name="title_activity_maps">SDL Sample Map</string>
     <string name="restart_button">Restart</string>
     <string name="config_transport">Configure Transport</string>
+    <string name="config_vde">Configure VDE frame rate</string>
 </resources>

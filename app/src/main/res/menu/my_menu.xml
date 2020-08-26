@@ -11,5 +11,8 @@
     <item android:id="@+id/action_config"
         android:orderInCategory="102"
         android:title="@string/config_transport" />
+    <item android:id="@+id/action_vde_config"
+        android:orderInCategory="103"
+        android:title="@string/config_vde" />
 
 </menu>

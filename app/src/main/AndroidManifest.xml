@@ -56,8 +56,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ConfigActivity"
+        <activity android:name=".TransportConfigActivity"
             android:label="@string/config_transport" />
+        <activity android:name=".VdeConfigActivity"
+            android:label="@string/config_vde" />
 
         <service android:name=".sdl.SdlService" />
 
