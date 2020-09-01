@@ -4,4 +4,7 @@
     <string name="restart_button">Restart</string>
     <string name="config_transport">Configure Transport</string>
     <string name="config_vde">Configure VDE frame rate</string>
+    <string name="choose_presentation">Choose VPM presentation</string>
+    <string name="googlemap">Google Map</string>
+    <string name="opengl">OpenGL Triangle</string>
 </resources>

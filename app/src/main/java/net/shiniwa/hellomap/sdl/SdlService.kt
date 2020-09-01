@@ -14,11 +14,13 @@ import com.smartdevicelink.managers.file.filetypes.SdlArtwork
 import com.smartdevicelink.managers.lifecycle.LifecycleConfigurationUpdate
 import com.smartdevicelink.protocol.enums.FunctionID
 import com.smartdevicelink.proxy.RPCNotification
-import com.smartdevicelink.proxy.rpc.HMICapabilities
-import com.smartdevicelink.proxy.rpc.OnHMIStatus
-import com.smartdevicelink.proxy.rpc.SetDisplayLayout
+import com.smartdevicelink.proxy.RPCRequest
+import com.smartdevicelink.proxy.interfaces.OnSystemCapabilityListener
+import com.smartdevicelink.proxy.rpc.*
 import com.smartdevicelink.proxy.rpc.enums.*
 import com.smartdevicelink.proxy.rpc.listeners.OnRPCNotificationListener
+import com.smartdevicelink.proxy.rpc.listeners.OnRPCRequestListener
+import com.smartdevicelink.streaming.video.SdlRemoteDisplay
 import com.smartdevicelink.streaming.video.VideoStreamingParameters
 import com.smartdevicelink.transport.BaseTransportConfig
 import com.smartdevicelink.transport.MultiplexTransportConfig
@@ -193,6 +195,29 @@ class SdlService : Service() {
                             }
                         }
                     })
+                sdlManager?.systemCapabilityManager?.getCapability(SystemCapabilityType.DISPLAY, object: OnSystemCapabilityListener {
+                    override fun onCapabilityRetrieved(capability: Any?) {
+                        val displayCapability = capability as DisplayCapabilities
+                        DisplayCapabilityManager.setDisplayCapabilities(applicationContext, displayCapability)
+                        val level = sdlManager?.currentHMIStatus?.hmiLevel
+                        Log.d(TAG, "Got DisplayCapabilities level=$level")
+                        if (level == HMILevel.HMI_NONE) {
+                            MyApplication.setConnectionState(ProxyStateManager.ProxyConnectionState.HMI_NONE)
+                        }
+                    }
+
+                    override fun onError(info: String?) {
+                        Log.e(TAG, "onError: $info")
+                    }
+                })
+
+                sdlManager?.addOnRPCNotificationListener(FunctionID.ON_TOUCH_EVENT, object: OnRPCNotificationListener() {
+                    override fun onNotified(notification: RPCNotification?) {
+                        //Log.d(TAG, "OnTouchEvent notified")
+                        val touchEvent: OnTouchEvent? = notification as OnTouchEvent
+                        OpenGLPresentation.handleTouchEvent(touchEvent)
+                    }
+                })
             }
 
             override fun onDestroy() {
@@ -274,7 +299,11 @@ class SdlService : Service() {
                 parameter.isStableFrameRate = pref.getBoolean(VdeConfigActivity.useStableFrameRateKey, true)
                 parameter.frameRate = pref.getInt(VdeConfigActivity.frameRateKey, 30)
             }
-            sdlManager?.videoStreamManager?.startRemoteDisplayStream(context, MapPresentation::class.java, parameter, false)
+            if (pref.getBoolean(VdeConfigActivity.isMapPresentationKey, true)) {
+                sdlManager?.videoStreamManager?.startRemoteDisplayStream(context, MapPresentation::class.java, parameter, false)
+            } else {
+                sdlManager?.videoStreamManager?.startRemoteDisplayStream(context, OpenGLPresentation::class.java, parameter, false)
+            }
         }
     }
 

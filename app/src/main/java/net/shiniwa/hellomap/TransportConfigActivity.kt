@@ -68,7 +68,7 @@ class TransportConfigActivity : AppCompatActivity() {
         val addr = pref.getString(addrKey, "127.0.0.1")
         addrEdit.setText(addr)
 
-        val port = pref.getInt(portKey, 15324)
+        val port = pref.getInt(portKey, 12345)
         portEdit.setText(String.format("%d", port))
     }
 

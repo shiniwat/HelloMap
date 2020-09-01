@@ -14,10 +14,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.smartdevicelink.transport.SdlBroadcastReceiver
 import net.shiniwa.hellomap.logging.Log
-import java.util.*
 import net.shiniwa.hellomap.logging.LogListAdapter
 import net.shiniwa.hellomap.sdl.ProxyStateManager
 import net.shiniwa.hellomap.sdl.ServiceBridge
+import java.util.*
 
 class MainListActivity: AppCompatActivity() {
     val TAG = MainListActivity::class.java.simpleName
@@ -37,6 +37,10 @@ class MainListActivity: AppCompatActivity() {
         fun addLogLine(time: Long, tag: String, msg: String) {
             sThis?.addLogLineToMainActivity(time, tag, msg)
             Log.e(tag, msg)
+        }
+
+        fun addLogLineOnTouch(tc: List<OnTouchScreenView.TouchCoordEx>) {
+            sThis?.addLogLineOnTouchToMainActivity(tc)
         }
 
         fun onConnectionStateChanged(state: ProxyStateManager.ProxyConnectionState) {
@@ -86,9 +90,13 @@ class MainListActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         sThis = this
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) !== PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                0
+            )
         }
-        Log.initiate(true, "/mnt/sdcard/" + getPackageName(),  "logs", "DebugLog_")
+        Log.initiate(true, "/mnt/sdcard/" + getPackageName(), "logs", "DebugLog_")
 
         setContentView(R.layout.main_list)
 
@@ -112,7 +120,10 @@ class MainListActivity: AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_restart) {
-            ServiceBridge.sendBroadcast(this, Intent().setAction(ServiceBridge.SupportedActions.ACTION_RESTART.name))
+            ServiceBridge.sendBroadcast(
+                this,
+                Intent().setAction(ServiceBridge.SupportedActions.ACTION_RESTART.name)
+            )
         } else if (item.itemId == R.id.action_config) {
             startActivity(Intent(this, TransportConfigActivity::class.java))
         } else if (item.itemId == R.id.action_vde_config) {
@@ -124,6 +135,31 @@ class MainListActivity: AppCompatActivity() {
     fun addLogLineToMainActivity(time: Long, tag: String, msg: String) {
         mHandler.post {
             mListAdapter?.addLog(LogListAdapter.LogListItem(getNowTimeString(), msg))
+        }
+    }
+
+    fun addLogLineOnTouchToMainActivity(tc: List<OnTouchScreenView.TouchCoordEx>) {
+        mHandler.post {
+            if (tc.size > 0) {
+                val nowtime: String = getNowTimeString()
+                if (tc.size == 1) {
+                    mListAdapter?.addLog(LogListAdapter.LogListItem(nowtime, tc[0].toAllString()))
+                    // also add to logcat
+                    Log.d(TAG, tc[0].toAllString())
+                } else {
+                    var msg = ""
+                    val max = tc.size - 1
+                    var i = 0
+                    for (t in tc) {
+                        msg += t.toAllString()
+                        if (i < max) {
+                            msg += System.getProperty("line.separator")
+                        }
+                        i++
+                    }
+                    mListAdapter?.addLog(LogListAdapter.LogListItem(nowtime, msg))
+                }
+            }
         }
     }
 
