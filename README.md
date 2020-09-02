@@ -13,6 +13,7 @@ This app demonstrates how stable frame rate works, which is proposed at SDL 0292
 3) open menu -> Configure VDE frame rate
 - check useStableFrameRate check box if you want to use stable frame rate.
 - When useStableFrameRate is checked, specify frame rate.
+- You can also choose either Map or OpenGL Triangle for VPM contents.
 - Press "Apply" button when you have done.
 4) open menu -> Restart
 5) on IVI system, activate "HelloMap".
