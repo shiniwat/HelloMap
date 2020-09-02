@@ -292,11 +292,9 @@ class SdlService : Service() {
             Log.e(TAG, "videoStreamManager is null")
         } else {
             val pref = getSharedPreferences(VdeConfigActivity.prefName, Context.MODE_PRIVATE)
-            var parameter: VideoStreamingParameters? = null
-            if (pref.getBoolean(VdeConfigActivity.useStableFrameRateKey, true)) {
-                // parameter is set only if stable frame rate is enabled.
-                parameter = VideoStreamingParameters()
-                parameter.isStableFrameRate = pref.getBoolean(VdeConfigActivity.useStableFrameRateKey, true)
+            var parameter = VideoStreamingParameters()
+            parameter.isStableFrameRate = pref.getBoolean(VdeConfigActivity.useStableFrameRateKey, true)
+            if (parameter.isStableFrameRate) {
                 parameter.frameRate = pref.getInt(VdeConfigActivity.frameRateKey, 30)
             }
             if (pref.getBoolean(VdeConfigActivity.isMapPresentationKey, true)) {
