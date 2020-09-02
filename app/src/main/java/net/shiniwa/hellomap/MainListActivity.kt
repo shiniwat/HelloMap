@@ -39,10 +39,6 @@ class MainListActivity: AppCompatActivity() {
             Log.e(tag, msg)
         }
 
-        fun addLogLineOnTouch(tc: List<OnTouchScreenView.TouchCoordEx>) {
-            sThis?.addLogLineOnTouchToMainActivity(tc)
-        }
-
         fun onConnectionStateChanged(state: ProxyStateManager.ProxyConnectionState) {
             sThis?.onConnectionStateChangedToMainActivity(state)
         }
@@ -135,31 +131,6 @@ class MainListActivity: AppCompatActivity() {
     fun addLogLineToMainActivity(time: Long, tag: String, msg: String) {
         mHandler.post {
             mListAdapter?.addLog(LogListAdapter.LogListItem(getNowTimeString(), msg))
-        }
-    }
-
-    fun addLogLineOnTouchToMainActivity(tc: List<OnTouchScreenView.TouchCoordEx>) {
-        mHandler.post {
-            if (tc.size > 0) {
-                val nowtime: String = getNowTimeString()
-                if (tc.size == 1) {
-                    mListAdapter?.addLog(LogListAdapter.LogListItem(nowtime, tc[0].toAllString()))
-                    // also add to logcat
-                    Log.d(TAG, tc[0].toAllString())
-                } else {
-                    var msg = ""
-                    val max = tc.size - 1
-                    var i = 0
-                    for (t in tc) {
-                        msg += t.toAllString()
-                        if (i < max) {
-                            msg += System.getProperty("line.separator")
-                        }
-                        i++
-                    }
-                    mListAdapter?.addLog(LogListAdapter.LogListItem(nowtime, msg))
-                }
-            }
         }
     }
 

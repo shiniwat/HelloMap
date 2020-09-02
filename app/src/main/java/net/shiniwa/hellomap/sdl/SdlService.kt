@@ -215,7 +215,7 @@ class SdlService : Service() {
                     override fun onNotified(notification: RPCNotification?) {
                         //Log.d(TAG, "OnTouchEvent notified")
                         val touchEvent: OnTouchEvent? = notification as OnTouchEvent
-                        OpenGLPresentation.handleTouchEvent(touchEvent)
+                        //OpenGLPresentation.handleTouchEvent(touchEvent)
                     }
                 })
             }
@@ -299,8 +299,6 @@ class SdlService : Service() {
             }
             if (pref.getBoolean(VdeConfigActivity.isMapPresentationKey, true)) {
                 sdlManager?.videoStreamManager?.startRemoteDisplayStream(context, MapPresentation::class.java, parameter, false)
-            } else {
-                sdlManager?.videoStreamManager?.startRemoteDisplayStream(context, OpenGLPresentation::class.java, parameter, false)
             }
         }
     }
