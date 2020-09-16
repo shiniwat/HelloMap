@@ -15,7 +15,7 @@ import com.smartdevicelink.managers.lifecycle.LifecycleConfigurationUpdate
 import com.smartdevicelink.protocol.enums.FunctionID
 import com.smartdevicelink.proxy.RPCNotification
 import com.smartdevicelink.proxy.RPCRequest
-import com.smartdevicelink.proxy.interfaces.OnSystemCapabilityListener
+import com.smartdevicelink.managers.lifecycle.OnSystemCapabilityListener
 import com.smartdevicelink.proxy.rpc.*
 import com.smartdevicelink.proxy.rpc.enums.*
 import com.smartdevicelink.proxy.rpc.listeners.OnRPCNotificationListener
@@ -47,7 +47,7 @@ class SdlService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        mBridge = ServiceBridge(applicationContext, object: ServiceBridge.Callback {
+        mBridge = ServiceBridge(applicationContext, object : ServiceBridge.Callback {
             override fun onRequestStartProxy() {
                 this@SdlService.startProxy()
             }
@@ -73,7 +73,11 @@ class SdlService : Service() {
     fun enterForeground() {
         Log.d(TAG, "about enterForeground")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(APP_ID, "SdlService", NotificationManager.IMPORTANCE_LOW)
+            val channel = NotificationChannel(
+                APP_ID,
+                "SdlService",
+                NotificationManager.IMPORTANCE_LOW
+            )
             val manager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (manager.areNotificationsEnabled()) {
                 manager.createNotificationChannel(channel)
@@ -153,9 +157,10 @@ class SdlService : Service() {
                                 return
                             }
                             if (hmiCapabilities == null) {
-                                hmiCapabilities = sdlManager?.registerAppInterfaceResponse?.hmiCapabilities
+                                hmiCapabilities =
+                                    sdlManager?.registerAppInterfaceResponse?.hmiCapabilities
                             }
-                            when(notification?.hmiLevel) {
+                            when (notification?.hmiLevel) {
                                 HMILevel.HMI_NONE -> MyApplication.setConnectionState(
                                     ProxyStateManager.ProxyConnectionState.HMI_NONE
                                 )
@@ -195,29 +200,36 @@ class SdlService : Service() {
                             }
                         }
                     })
-                sdlManager?.systemCapabilityManager?.getCapability(SystemCapabilityType.DISPLAY, object: OnSystemCapabilityListener {
-                    override fun onCapabilityRetrieved(capability: Any?) {
-                        val displayCapability = capability as DisplayCapabilities
-                        DisplayCapabilityManager.setDisplayCapabilities(applicationContext, displayCapability)
-                        val level = sdlManager?.currentHMIStatus?.hmiLevel
-                        Log.d(TAG, "Got DisplayCapabilities level=$level")
-                        if (level == HMILevel.HMI_NONE) {
-                            MyApplication.setConnectionState(ProxyStateManager.ProxyConnectionState.HMI_NONE)
+                sdlManager?.systemCapabilityManager?.getCapability(
+                    SystemCapabilityType.DISPLAY,
+                    object : OnSystemCapabilityListener {
+                        override fun onCapabilityRetrieved(capability: Any?) {
+                            val displayCapability = capability as DisplayCapabilities
+                            DisplayCapabilityManager.setDisplayCapabilities(
+                                applicationContext,
+                                displayCapability
+                            )
+                            val level = sdlManager?.currentHMIStatus?.hmiLevel
+                            Log.d(TAG, "Got DisplayCapabilities level=$level")
+                            if (level == HMILevel.HMI_NONE) {
+                                MyApplication.setConnectionState(ProxyStateManager.ProxyConnectionState.HMI_NONE)
+                            }
                         }
-                    }
 
-                    override fun onError(info: String?) {
-                        Log.e(TAG, "onError: $info")
-                    }
-                })
+                        override fun onError(info: String?) {
+                            Log.e(TAG, "onError: $info")
+                        }
+                    }, false)
 
-                sdlManager?.addOnRPCNotificationListener(FunctionID.ON_TOUCH_EVENT, object: OnRPCNotificationListener() {
-                    override fun onNotified(notification: RPCNotification?) {
-                        //Log.d(TAG, "OnTouchEvent notified")
-                        val touchEvent: OnTouchEvent? = notification as OnTouchEvent
-                        //OpenGLPresentation.handleTouchEvent(touchEvent)
-                    }
-                })
+                sdlManager?.addOnRPCNotificationListener(
+                    FunctionID.ON_TOUCH_EVENT,
+                    object : OnRPCNotificationListener() {
+                        override fun onNotified(notification: RPCNotification?) {
+                            //Log.d(TAG, "OnTouchEvent notified")
+                            val touchEvent: OnTouchEvent? = notification as OnTouchEvent
+                            //OpenGLPresentation.handleTouchEvent(touchEvent)
+                        }
+                    })
             }
 
             override fun onDestroy() {
@@ -234,11 +246,6 @@ class SdlService : Service() {
                 language: Language?,
                 hmiLanguage: Language?
             ): LifecycleConfigurationUpdate? {
-                Log.d(TAG, "managerShouldUpdateLifecycle" + language)
-                return null
-            }
-
-            override fun managerShouldUpdateLifecycle(language: Language?): LifecycleConfigurationUpdate? {
                 Log.d(TAG, "managerShouldUpdateLifecycle" + language)
                 return null
             }
@@ -262,7 +269,11 @@ class SdlService : Service() {
         val pref = getSharedPreferences(TransportConfigActivity.prefName, Context.MODE_PRIVATE)
         val mode = pref.getBoolean(TransportConfigActivity.transportKey, true)
         if (mode) {
-            return MultiplexTransportConfig(this, APP_ID, MultiplexTransportConfig.FLAG_MULTI_SECURITY_HIGH)
+            return MultiplexTransportConfig(
+                this,
+                APP_ID,
+                MultiplexTransportConfig.FLAG_MULTI_SECURITY_HIGH
+            )
         } else {
             val ipAddr = pref.getString(TransportConfigActivity.addrKey, "127.0.0.1")
             val port = pref.getInt(TransportConfigActivity.portKey, 12345)
@@ -293,12 +304,20 @@ class SdlService : Service() {
         } else {
             val pref = getSharedPreferences(VdeConfigActivity.prefName, Context.MODE_PRIVATE)
             var parameter = VideoStreamingParameters()
-            parameter.isStableFrameRate = pref.getBoolean(VdeConfigActivity.useStableFrameRateKey, true)
+            parameter.isStableFrameRate = pref.getBoolean(
+                VdeConfigActivity.useStableFrameRateKey,
+                true
+            )
             if (parameter.isStableFrameRate) {
                 parameter.frameRate = pref.getInt(VdeConfigActivity.frameRateKey, 30)
             }
             if (pref.getBoolean(VdeConfigActivity.isMapPresentationKey, true)) {
-                sdlManager?.videoStreamManager?.startRemoteDisplayStream(context, MapPresentation::class.java, parameter, false)
+                sdlManager?.videoStreamManager?.startRemoteDisplayStream(
+                    context,
+                    MapPresentation::class.java,
+                    parameter,
+                    false
+                )
             }
         }
     }

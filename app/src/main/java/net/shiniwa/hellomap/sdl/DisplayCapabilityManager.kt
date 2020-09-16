@@ -1,6 +1,7 @@
 package net.shiniwa.hellomap.sdl
 
 import android.content.Context
+import com.smartdevicelink.marshal.JsonRPCMarshaller
 import com.smartdevicelink.proxy.rpc.DisplayCapabilities
 import org.json.JSONObject
 
@@ -20,7 +21,7 @@ class DisplayCapabilityManager {
             val pref = context.getSharedPreferences(PREF_DISPLAY_CAPABILITY, Context.MODE_PRIVATE)
             val str = pref.getString(DISPLAY_CAPABILITY_KEY, null)
             val json = JSONObject(str)
-            val hash = DisplayCapabilities.deserializeJSONObject(json)
+            val hash = JsonRPCMarshaller.deserializeJSONObject(json)
             return DisplayCapabilities(hash)
         }
      }
