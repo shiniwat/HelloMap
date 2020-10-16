@@ -12,7 +12,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import com.smartdevicelink.proxy.SdlProxyALM
+import com.smartdevicelink.marshal.JsonRPCMarshaller.deserializeJSONObject
 import com.smartdevicelink.proxy.rpc.DisplayCapabilities
 import com.smartdevicelink.proxy.rpc.OnKeyboardInput
 import com.smartdevicelink.proxy.rpc.OnTouchEvent
@@ -163,7 +163,7 @@ class OpenGLPresentation(context: Context?, display: Display?) : SdlRemoteDispla
 
     fun getDisplayCapability() : DisplayCapabilities? {
         val str = getDisplayCapabilityJSON()
-        val hash = DisplayCapabilities.deserializeJSONObject(JSONObject(str))
+        val hash = deserializeJSONObject(JSONObject(str))
         return DisplayCapabilities(hash)
     }
 

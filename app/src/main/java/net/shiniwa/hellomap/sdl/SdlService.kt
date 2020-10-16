@@ -12,10 +12,10 @@ import com.smartdevicelink.managers.SdlManager
 import com.smartdevicelink.managers.SdlManagerListener
 import com.smartdevicelink.managers.file.filetypes.SdlArtwork
 import com.smartdevicelink.managers.lifecycle.LifecycleConfigurationUpdate
+import com.smartdevicelink.managers.lifecycle.OnSystemCapabilityListener
 import com.smartdevicelink.protocol.enums.FunctionID
 import com.smartdevicelink.proxy.RPCNotification
 import com.smartdevicelink.proxy.RPCRequest
-import com.smartdevicelink.proxy.interfaces.OnSystemCapabilityListener
 import com.smartdevicelink.proxy.rpc.*
 import com.smartdevicelink.proxy.rpc.enums.*
 import com.smartdevicelink.proxy.rpc.listeners.OnRPCNotificationListener
@@ -196,7 +196,7 @@ class SdlService : Service() {
                         }
                     })
                 sdlManager?.systemCapabilityManager?.getCapability(SystemCapabilityType.DISPLAY, object: OnSystemCapabilityListener {
-                    override fun onCapabilityRetrieved(capability: Any?) {
+                    override fun onCapabilityRetrieved(capability: Any) {
                         val displayCapability = capability as DisplayCapabilities
                         DisplayCapabilityManager.setDisplayCapabilities(applicationContext, displayCapability)
                         val level = sdlManager?.currentHMIStatus?.hmiLevel
@@ -206,10 +206,10 @@ class SdlService : Service() {
                         }
                     }
 
-                    override fun onError(info: String?) {
+                    override fun onError(info: String) {
                         Log.e(TAG, "onError: $info")
                     }
-                })
+                }, false)
 
                 sdlManager?.addOnRPCNotificationListener(FunctionID.ON_TOUCH_EVENT, object: OnRPCNotificationListener() {
                     override fun onNotified(notification: RPCNotification?) {
@@ -238,10 +238,11 @@ class SdlService : Service() {
                 return null
             }
 
+            /*--
             override fun managerShouldUpdateLifecycle(language: Language?): LifecycleConfigurationUpdate? {
                 Log.d(TAG, "managerShouldUpdateLifecycle" + language)
                 return null
-            }
+            } --*/
         }
 
         val appIcon = SdlArtwork(ICON_FILENAME, FileType.GRAPHIC_PNG, R.mipmap.ic_launcher, true)
