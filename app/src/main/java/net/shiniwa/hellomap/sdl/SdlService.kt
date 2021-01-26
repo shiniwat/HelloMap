@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.util.Log
+import com.smartdevicelink.managers.IRPCMessageListener
 import com.smartdevicelink.managers.SdlManager
 import com.smartdevicelink.managers.SdlManagerListener
 import com.smartdevicelink.managers.file.filetypes.SdlArtwork
@@ -16,16 +17,20 @@ import com.smartdevicelink.protocol.enums.FunctionID
 import com.smartdevicelink.proxy.RPCNotification
 import com.smartdevicelink.proxy.RPCRequest
 import com.smartdevicelink.managers.lifecycle.OnSystemCapabilityListener
+import com.smartdevicelink.proxy.RPCMessage
+import com.smartdevicelink.proxy.RPCResponse
 import com.smartdevicelink.proxy.rpc.*
 import com.smartdevicelink.proxy.rpc.enums.*
 import com.smartdevicelink.proxy.rpc.listeners.OnRPCNotificationListener
 import com.smartdevicelink.proxy.rpc.listeners.OnRPCRequestListener
+import com.smartdevicelink.session.ISdlSessionListener
 import com.smartdevicelink.streaming.video.SdlRemoteDisplay
 import com.smartdevicelink.streaming.video.VideoStreamingParameters
 import com.smartdevicelink.transport.BaseTransportConfig
 import com.smartdevicelink.transport.MultiplexTransportConfig
 import com.smartdevicelink.transport.TCPTransportConfig
 import com.smartdevicelink.transport.enums.TransportType
+import com.smartdevicelink.util.Version
 import net.shiniwa.hellomap.*
 import java.util.*
 
@@ -160,44 +165,7 @@ class SdlService : Service() {
                                 hmiCapabilities =
                                     sdlManager?.registerAppInterfaceResponse?.hmiCapabilities
                             }
-                            when (notification?.hmiLevel) {
-                                HMILevel.HMI_NONE -> MyApplication.setConnectionState(
-                                    ProxyStateManager.ProxyConnectionState.HMI_NONE
-                                )
-                                HMILevel.HMI_LIMITED -> MyApplication.setConnectionState(
-                                    ProxyStateManager.ProxyConnectionState.HMI_LIMITED
-                                )
-                                HMILevel.HMI_FULL -> {
-                                    MyApplication.setConnectionState(ProxyStateManager.ProxyConnectionState.HMI_FULL)
-                                    if (hmiCapabilities?.isVideoStreamingAvailable() == true) {
-                                        Log.d(TAG, "videoStreaming is available")
-                                        startVPM(applicationContext)
-                                    } else {
-                                        Log.d(TAG, "videoStreaming is NOT available")
-                                        val display = SetDisplayLayout(PredefinedLayout.MEDIA.name)
-                                        sdlManager?.sendRPC(display)
-                                        //if (status.firstRun) {
-                                        sdlManager?.getScreenManager()?.beginTransaction()
-                                        sdlManager?.getScreenManager()?.textField1 = APP_NAME
-                                        sdlManager?.getScreenManager()?.textField2 =
-                                            "Please connect USB cable"
-                                        sdlManager?.getScreenManager()?.primaryGraphic =
-                                            SdlArtwork(
-                                                SDL_IMAGE_FILENAME,
-                                                FileType.GRAPHIC_PNG,
-                                                R.drawable.ic_sdl,
-                                                true
-                                            )
-                                        sdlManager?.getScreenManager()?.commit { success ->
-                                            if (success) {
-                                                Log.i(TAG, "welcome show successful")
-                                            }
-                                        }
-                                        //}
-                                    }
-                                }
-                                else -> Log.d(TAG, "ON_HMI_STATUS: " + notification?.hmiLevel?.name)
-                            }
+                            hmiStatusHandler(notification?.hmiLevel)
                         }
                     })
                 sdlManager?.systemCapabilityManager?.getCapability(
@@ -261,10 +229,71 @@ class SdlService : Service() {
         builder.setTransportType(transportConfig)
         builder.setAppIcon(appIcon)
         sdlManager = builder.build()
-        sdlManager?.start()
+        sdlManager?.start(object: IRPCMessageListener {
+            override fun onRPCMessage(message: RPCMessage?) {
+                message?.functionID.let {
+                    when(it) {
+                        FunctionID.ON_HMI_STATUS -> {
+                            val hmiStatus = message!! as OnHMIStatus
+                            Log.d(TAG, "OnHMIStatus level=${hmiStatus.hmiLevel.name}")
+                            hmiStatusHandler(hmiStatus.hmiLevel)
+                        }
+                        FunctionID.REGISTER_APP_INTERFACE -> {
+                            if (message?.messageType!!.equals(RPCMessage.KEY_RESPONSE)) {
+                                val response = message!! as RPCResponse
+                                if (!response.success) {
+                                    Log.d(TAG, "got RAI error response. result= ${response.resultCode.name}")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
         Log.d(TAG, "sdlManager#start() finished")
     }
 
+    fun hmiStatusHandler(hmiLevel: HMILevel) {
+        when (hmiLevel) {
+            HMILevel.HMI_NONE -> MyApplication.setConnectionState(
+                    ProxyStateManager.ProxyConnectionState.HMI_NONE
+            )
+            HMILevel.HMI_LIMITED -> MyApplication.setConnectionState(
+                    ProxyStateManager.ProxyConnectionState.HMI_LIMITED
+            )
+            HMILevel.HMI_FULL -> {
+                MyApplication.setConnectionState(ProxyStateManager.ProxyConnectionState.HMI_FULL)
+                if (hmiCapabilities?.isVideoStreamingAvailable() == true) {
+                    Log.d(TAG, "videoStreaming is available")
+                    startVPM(applicationContext)
+                } else {
+                    Log.d(TAG, "videoStreaming is NOT available")
+                    val display = SetDisplayLayout(PredefinedLayout.MEDIA.name)
+                    sdlManager?.sendRPC(display)
+                    //if (status.firstRun) {
+                    sdlManager?.getScreenManager()?.beginTransaction()
+                    sdlManager?.getScreenManager()?.textField1 = APP_NAME
+                    sdlManager?.getScreenManager()?.textField2 =
+                            "Please connect USB cable"
+                    sdlManager?.getScreenManager()?.primaryGraphic =
+                            SdlArtwork(
+                                    SDL_IMAGE_FILENAME,
+                                    FileType.GRAPHIC_PNG,
+                                    R.drawable.ic_sdl,
+                                    true
+                            )
+                    sdlManager?.getScreenManager()?.commit { success ->
+                        if (success) {
+                            Log.i(TAG, "welcome show successful")
+                        }
+                    }
+                    //}
+                }
+            }
+            else -> Log.d(TAG, "ON_HMI_STATUS: " + hmiLevel.name)
+        }
+
+    }
     fun getTransportConfig(): BaseTransportConfig {
         val pref = getSharedPreferences(TransportConfigActivity.prefName, Context.MODE_PRIVATE)
         val mode = pref.getBoolean(TransportConfigActivity.transportKey, true)
