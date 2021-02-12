@@ -52,6 +52,7 @@ class SdlService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "onCreate")
         mBridge = ServiceBridge(applicationContext, object : ServiceBridge.Callback {
             override fun onRequestStartProxy() {
                 this@SdlService.startProxy()
@@ -63,13 +64,22 @@ class SdlService : Service() {
                 }
                 mRestarting = true
                 Log.d(TAG, "onRestartApp")
+                // try unregister first
+                //val unrai = UnregisterAppInterface()
+                //unrai.correlationID = 65530
+                //sdlManager?.sendRPC(unrai)
                 this@SdlService.disposeSyncProxy()
+                //
                 val handler = Handler(Looper.getMainLooper())
                 handler.postDelayed({
+                    sdlManager = null
                     Log.d(TAG, "about startProxy")
                     this@SdlService.startProxy()
                     mRestarting = false
-                }, 1000)
+                }, 2000)
+                //
+                // restart the service
+                //MyApplication.getInstance()?.restartService(applicationContext)
             }
         })
         enterForeground()
@@ -161,10 +171,6 @@ class SdlService : Service() {
                             if (onHMIStatus.windowID != null && onHMIStatus.windowID != PredefinedWindows.DEFAULT_WINDOW.value) {
                                 return
                             }
-                            if (hmiCapabilities == null) {
-                                hmiCapabilities =
-                                    sdlManager?.registerAppInterfaceResponse?.hmiCapabilities
-                            }
                             hmiStatusHandler(notification?.hmiLevel)
                         }
                     })
@@ -241,10 +247,23 @@ class SdlService : Service() {
                         FunctionID.REGISTER_APP_INTERFACE -> {
                             if (message?.messageType!!.equals(RPCMessage.KEY_RESPONSE)) {
                                 val response = message!! as RPCResponse
-                                if (!response.success) {
-                                    Log.d(TAG, "got RAI error response. result= ${response.resultCode.name}")
+                                if (response.success) {
+                                } else {
+                                    Log.e(TAG, "got RAI error response. result= ${response.resultCode.name}")
+                                    //if (response.resultCode.name.contains("APPLICATION_REGISTERED_ALREADY")) {
+                                        // @TODO: need to figure out how to get around from this situation.
+                                    //}
                                 }
+                            } else {
+
                             }
+                        }
+                        FunctionID.ON_APP_INTERFACE_UNREGISTERED -> {
+                            val response = message!! as OnAppInterfaceUnregistered
+                            Log.e(TAG, "got ON_APP_INTERFACE_UNREGISTERED; reason = ${response.reason.name}")
+                        }
+                        else -> {
+                            // @TBD
                         }
                     }
                 }
@@ -254,6 +273,10 @@ class SdlService : Service() {
     }
 
     fun hmiStatusHandler(hmiLevel: HMILevel) {
+        if (hmiCapabilities == null) {
+            hmiCapabilities =
+                    sdlManager?.registerAppInterfaceResponse?.hmiCapabilities
+        }
         when (hmiLevel) {
             HMILevel.HMI_NONE -> MyApplication.setConnectionState(
                     ProxyStateManager.ProxyConnectionState.HMI_NONE
