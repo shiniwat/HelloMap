@@ -76,7 +76,7 @@ class SdlService : Service() {
                     Log.d(TAG, "about startProxy")
                     this@SdlService.startProxy()
                     mRestarting = false
-                }, 2000)
+                }, 4000)
                 //
                 // restart the service
                 //MyApplication.getInstance()?.restartService(applicationContext)
@@ -143,13 +143,15 @@ class SdlService : Service() {
                         Log.d(TAG, "about restarting app")
                         // BT -> USB case: we need to disposeProxy here,
                         // USB -> BT case: we disposeProxy on USB transport already. So we should NOT dispose proxy on BT transport.
+                        // above assumption was true for some UJBC version, but we need restart even for USB->BT case as well to make it work for all UJBC.
                         if (videoStreamingTransportAvailable) {
-                            invokeRestart(0)
+                            invokeRestart(4000)
                         } else {
-                            ServiceBridge.sendBroadcast(
-                                applicationContext,
-                                Intent().setAction(ServiceBridge.SupportedActions.ACTION_STARTPROXY.name)
-                            )
+                            invokeRestart(4000)
+                            //ServiceBridge.sendBroadcast(
+                            //    applicationContext,
+                            //    Intent().setAction(ServiceBridge.SupportedActions.ACTION_STARTPROXY.name)
+                            //)
                         }
                     }
                 }
@@ -250,9 +252,12 @@ class SdlService : Service() {
                                 if (response.success) {
                                 } else {
                                     Log.e(TAG, "got RAI error response. result= ${response.resultCode.name}")
-                                    //if (response.resultCode.name.contains("APPLICATION_REGISTERED_ALREADY")) {
-                                        // @TODO: need to figure out how to get around from this situation.
-                                    //}
+                                    if (response.resultCode.name.contains("APPLICATION_REGISTERED_ALREADY")) {
+                                        // let's retry once
+                                        invokeRestart(4000)
+                                    } else {
+
+                                    }
                                 }
                             } else {
 
