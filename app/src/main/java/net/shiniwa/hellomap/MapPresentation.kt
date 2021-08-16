@@ -37,4 +37,8 @@ class MapPresentation(mContext: Context, mDisplay: Display) : SdlRemoteDisplay(m
 
         Log.d(TAG, "MapPresentation created")
     }
+
+    override fun onViewResized(width: Int, height: Int) {
+        //super.onViewResized(width, height)
+    }
 }

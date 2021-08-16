@@ -30,6 +30,7 @@ import com.smartdevicelink.transport.BaseTransportConfig
 import com.smartdevicelink.transport.MultiplexTransportConfig
 import com.smartdevicelink.transport.TCPTransportConfig
 import com.smartdevicelink.transport.enums.TransportType
+import com.smartdevicelink.util.SystemInfo
 import com.smartdevicelink.util.Version
 import net.shiniwa.hellomap.*
 import java.util.*
@@ -224,6 +225,11 @@ class SdlService : Service() {
             ): LifecycleConfigurationUpdate? {
                 Log.d(TAG, "managerShouldUpdateLifecycle" + language)
                 return null
+            }
+
+            override fun onSystemInfoReceived(systemInfo: SystemInfo?): Boolean {
+                Log.d(TAG, "onSystemInfoRetrieved: $systemInfo")
+                return true
             }
         }
 
