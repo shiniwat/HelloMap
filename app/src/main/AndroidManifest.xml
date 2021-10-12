@@ -14,6 +14,15 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-feature android:name="android.hardware.usb.accessory" />
 
+    <!-- Required when targeting Android API 30+ -->
+    <queries>
+        <intent>
+            <action android:name="com.smartdevicelink.router.service" />
+        </intent>
+        <intent>
+            <action android:name="sdl.router.startservice" />
+        </intent>
+    </queries>
     <application
         android:allowBackup="true"
         android:name=".MyApplication"
@@ -48,7 +57,8 @@
         <activity
             android:name=".MainListActivity"
             android:label="@string/title_activity_maps"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -57,8 +67,10 @@
         </activity>
 
         <activity android:name=".TransportConfigActivity"
+            android:exported="true"
             android:label="@string/config_transport" />
         <activity android:name=".VdeConfigActivity"
+            android:exported="true"
             android:label="@string/config_vde" />
 
         <service android:name=".sdl.SdlService" />
