@@ -6,6 +6,11 @@ import android.util.Log
 import com.smartdevicelink.transport.SdlBroadcastReceiver
 import com.smartdevicelink.transport.SdlRouterService
 import com.smartdevicelink.transport.TransportConstants
+import android.os.Build
+
+import android.app.PendingIntent
+import android.app.PendingIntent.CanceledException
+
 
 class Receiver: SdlBroadcastReceiver() {
     private val TAG = Receiver::class.java.simpleName
@@ -29,6 +34,27 @@ class Receiver: SdlBroadcastReceiver() {
 
     override fun onSdlEnabled(context: Context?, intent: Intent?) {
         Log.d(TAG, "onSdlEnabled")
-        ServiceBridge.sendBroadcast(context!!, Intent().setAction(ServiceBridge.SupportedActions.ACTION_STARTPROXY.name))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            intent?.getParcelableExtra<PendingIntent>(TransportConstants.PENDING_INTENT_EXTRA)?.let {
+                try {
+                    Log.d(TAG, "onSdlEnabled, pendingIntent=" + it)
+                    //it.send(context, 0, intent)
+                    // we still need ACTION_STARTPROXY
+                    ServiceBridge.sendBroadcast(context!!, Intent().setAction(ServiceBridge.SupportedActions.ACTION_STARTPROXY.name))
+                } catch(e: CanceledException) {
+                    e.printStackTrace()
+                }
+            }
+        } else {
+            // SdlService needs to be foregrounded in Android O and above
+            // This will prevent apps in the background from crashing when they try to start SdlService
+            // Because Android O doesn't allow background apps to start background services
+            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //    context!!.startForegroundService(intent)
+            //} else {
+            //    context!!.startService(intent)
+            //}
+            ServiceBridge.sendBroadcast(context!!, Intent().setAction(ServiceBridge.SupportedActions.ACTION_STARTPROXY.name))
+        }
     }
 }
