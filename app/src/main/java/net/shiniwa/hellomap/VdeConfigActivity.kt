@@ -44,6 +44,8 @@ class VdeConfigActivity : AppCompatActivity() {
         val mapButton = findViewById<RadioButton>(R.id.radioMap)
         val listButton = findViewById<RadioButton>(R.id.radioList)
         val openGLButton = findViewById<RadioButton>(R.id.radioOpenGL)
+        // disable OpenGL for now
+        openGLButton.isEnabled = false
 
         checkBox.isChecked = useStableFrameRate
         val frameRate = pref.getInt(frameRateKey, 30)
