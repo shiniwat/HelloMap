@@ -7,4 +7,5 @@
     <string name="choose_presentation">Choose VPM presentation</string>
     <string name="googlemap">Google Map</string>
     <string name="opengl">OpenGL Triangle</string>
+    <string name="listview">ListView</string>
 </resources>

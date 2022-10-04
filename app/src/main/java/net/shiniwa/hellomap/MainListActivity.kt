@@ -10,14 +10,17 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.ListView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import com.smartdevicelink.transport.SdlBroadcastReceiver
 import net.shiniwa.hellomap.logging.Log
 import net.shiniwa.hellomap.logging.LogListAdapter
 import net.shiniwa.hellomap.sdl.ProxyStateManager
 import net.shiniwa.hellomap.sdl.ServiceBridge
 import java.util.*
+import java.util.logging.Logger
 
 class MainListActivity: AppCompatActivity() {
     val TAG = MainListActivity::class.java.simpleName
@@ -107,6 +110,7 @@ class MainListActivity: AppCompatActivity() {
         SdlBroadcastReceiver.queryForConnectedService(this)
         // also start service
         MyApplication.getInstance()?.bindSdlService(this)
+        permissionLauncher.launch(arrayOf(Manifest.permission.READ_PHONE_STATE))
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -144,5 +148,9 @@ class MainListActivity: AppCompatActivity() {
 
     fun onNotifyVersion(version: String?) {
         mHeader2?.text = "SDL Proxy Version = $version"
+    }
+
+    private val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        Log.d(TAG, "permissions=$permissions")
     }
 }

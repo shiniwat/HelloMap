@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="net.shiniwa.hellomap">
 
     <!--
@@ -12,7 +13,10 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-feature android:name="android.hardware.usb.accessory" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" tools:targetApi="31"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" tools:targetApi="33"/>
 
     <!-- Required when targeting Android API 30+ -->
     <queries>
@@ -73,7 +77,10 @@
             android:exported="true"
             android:label="@string/config_vde" />
 
-        <service android:name=".sdl.SdlService" />
+        <service android:name=".sdl.SdlService"
+            android:exported="true"
+            android:enabled="true">
+        </service>
 
         <service android:name=".sdl.RouterService"
             android:exported="true"

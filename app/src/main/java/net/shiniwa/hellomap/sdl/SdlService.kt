@@ -381,6 +381,13 @@ class SdlService : Service() {
                     parameter,
                     false
                 )
+            } else {//if (pref.getBoolean(VdeConfigActivity.isListPresentationKey, false)) {
+                sdlManager?.videoStreamManager?.startRemoteDisplayStream(
+                    context,
+                    ListPresentation::class.java,
+                    parameter,
+                    false
+                )
             }
         }
     }

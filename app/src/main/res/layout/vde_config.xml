@@ -57,8 +57,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="60dp"
-            android:enabled="false"
+            android:enabled="true"
             android:text="@string/opengl" />
+        <RadioButton
+            android:id="@+id/radioList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="60dp"
+            android:enabled="true"
+            android:text="@string/listview" />
     </RadioGroup>
     <Button
         android:id="@+id/button_apply"

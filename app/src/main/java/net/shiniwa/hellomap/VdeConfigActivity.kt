@@ -18,6 +18,7 @@ class VdeConfigActivity : AppCompatActivity() {
         val useStableFrameRateKey = "useStableFrameRate"
         val frameRateKey = "frameRate"
         val isMapPresentationKey = "isMapPresentation"
+        val isListPresentationKey = "isListPresentation"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,14 +40,21 @@ class VdeConfigActivity : AppCompatActivity() {
         val checkBox = findViewById<CheckBox>(R.id.useStableFramerate)
         val frameEdit = findViewById<EditText>(R.id.frame_rate)
         val isMapPresentation = pref.getBoolean(isMapPresentationKey, true)
+        val isListPresentation = pref.getBoolean(isListPresentationKey, false)
         val mapButton = findViewById<RadioButton>(R.id.radioMap)
+        val listButton = findViewById<RadioButton>(R.id.radioList)
         val openGLButton = findViewById<RadioButton>(R.id.radioOpenGL)
 
         checkBox.isChecked = useStableFrameRate
         val frameRate = pref.getInt(frameRateKey, 30)
         frameEdit.setText(String.format("%d", frameRate))
-        mapButton.isChecked = isMapPresentation
-        openGLButton.isChecked = !isMapPresentation
+        if (isMapPresentation) {
+            mapButton.isChecked = isMapPresentation
+        } else if (isListPresentation) {
+            listButton.isChecked = isListPresentation
+        } else {
+            openGLButton.isChecked = !isMapPresentation
+        }
     }
 
     private fun saveSettings() {
@@ -56,9 +64,11 @@ class VdeConfigActivity : AppCompatActivity() {
         val checkBox = findViewById<CheckBox>(R.id.useStableFramerate)
         val frameEdit = findViewById<EditText>(R.id.frame_rate)
         val mapButton = findViewById<RadioButton>(R.id.radioMap)
+        val listButton = findViewById<RadioButton>(R.id.radioList)
         edit.putBoolean(useStableFrameRateKey, checkBox.isChecked)
         edit.putInt(frameRateKey, frameEdit.text.toString().toInt())
         edit.putBoolean(isMapPresentationKey, mapButton.isChecked)
+        edit.putBoolean(isListPresentationKey, listButton.isChecked)
         edit.commit()
     }
 }
